@@ -1,5 +1,5 @@
 extern crate nalgebra as na;
-use na::{Matrix3, Matrix4};
+use na::{Matrix3, Matrix4, Matrix6};
 
 pub fn vec_to_so3<T: Copy>(omega: &[T; 3]) -> Matrix3<f64> where f64: std::convert::From<T> {
     return Matrix3::new(0.0, -f64::from(omega[2]), f64::from(omega[1]),
@@ -12,6 +12,14 @@ pub fn vec_to_se3<T: Copy>(omega: &[T; 6]) -> Matrix4<f64> where f64: std::conve
                            f64::from(omega[2]), 0.0, -f64::from(omega[0]), f64::from(omega[4]),
                            -f64::from(omega[1]), f64::from(omega[0]), 0.0, f64::from(omega[5]),
                            0.0, 0.0, 0.0, 0.0);
+}
+
+pub fn ad<T: Copy>(omega: &[T; 6]) -> Matrix6<f64> where f64: std::convert::From<T> {
+    // return Matrix6::new(0.0, -f64::from(omega[2]), f64::from(omega[1]), f64::from(omega[3]),
+                           // f64::from(omega[2]), 0.0, -f64::from(omega[0]), f64::from(omega[4]),
+                           // -f64::from(omega[1]), f64::from(omega[0]), 0.0, f64::from(omega[5]),
+                           // 0.0, 0.0, 0.0, 0.0);
+    return Matrix6::identity();
 }
 
 #[cfg(test)]
