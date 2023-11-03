@@ -50,7 +50,7 @@ where
 {
     // these unwraps should never panic - the length of the input is set to 6 so should always be
     // valid
-    let omega = vec_to_so3(&v[0..2].try_into().unwrap());
+    let omega = vec_to_so3(&v[0..3].try_into().unwrap());
     let vmat = vec_to_so3(&v[3..6].try_into().unwrap());
     let zeros = Matrix3::new(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
     return bcat![omega, zeros;
@@ -110,6 +110,18 @@ mod tests {
             0.0, -3.0, 2.0, 4.0, 3.0, 0.0, -1.0, 5.0, -2.0, 1.0, 0.0, 6.0, 0.0, 0.0, 0.0, 0.0,
         );
         let res = vec_to_se3(&[1, 2, 3, 4, 5, 6]);
+        assert_eq!(res, test_mat);
+    }
+
+    #[test]
+    fn test_ad_conversion() {
+        let test_vec = [1, 2, 3, 4, 5, 6];
+        let res = ad(&test_vec);
+        let test_mat = Matrix6::new(
+            0.0, -3.0, 2.0, 0.0, 0.0, 0.0, 3.0, 0.0, -1.0, 0.0, 0.0, 0.0, -2.0, 1.0, 0.0, 0.0, 0.0,
+            0.0, 0.0, -6.0, 5.0, 0.0, -3.0, 2.0, 6.0, 0.0, -4.0, 3.0, 0.0, -1.0, -5.0, 4.0, 0.0,
+            -2.0, 1.0, 0.0,
+        );
         assert_eq!(res, test_mat);
     }
 }
