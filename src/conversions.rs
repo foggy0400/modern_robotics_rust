@@ -1,7 +1,7 @@
 extern crate nalgebra as na;
 use crate::bcat;
 use crate::concat::{allocate_block_output, Block, HCat, VCat};
-use na::{Matrix3, Matrix4, Matrix6};
+use na::{Matrix3, Matrix4, Matrix6, Scalar, Vector3};
 
 pub fn vec_to_so3<T: Copy>(omega: &[T; 3]) -> Matrix3<f64>
 where
@@ -44,6 +44,17 @@ where
     );
 }
 
+pub fn trans_to_rp<T: Copy>(v: Matrix4<T>) -> (Matrix3<T>, Vector3<T>)
+where
+    f64: std::convert::From<T>,
+    T: Scalar,
+{
+    (
+        v.fixed_view::<3, 3>(0, 0).into(),
+        v.column(3).clone_owned().remove_row(3),
+    )
+}
+
 pub fn ad<T: Copy>(v: &[T; 6]) -> Matrix6<f64>
 where
     f64: std::convert::From<T>,
@@ -52,7 +63,7 @@ where
     // valid
     let omega = vec_to_so3(&v[0..3].try_into().unwrap());
     let vmat = vec_to_so3(&v[3..6].try_into().unwrap());
-    let zeros = Matrix3::new(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
+    let zeros = Matrix3::zeros();
     return bcat![omega, zeros;
                 vmat, omega];
 }
@@ -113,6 +124,7 @@ mod tests {
         assert_eq!(res, test_mat);
     }
 
+    // More tests are needed for this function, this is just the example from MR
     #[test]
     fn test_ad_conversion() {
         let test_vec = [1, 2, 3, 4, 5, 6];
@@ -123,5 +135,18 @@ mod tests {
             -2.0, 1.0, 0.0,
         );
         assert_eq!(res, test_mat);
+    }
+
+    // More tests are needed for this function, this is just the example from MR
+    #[test]
+    fn test_trans_to_rp() {
+        let test_t = Matrix4::new(
+            1.0, 0.0, 0.0, 0.0, 0.0, 0.0, -1.0, 0.0, 0.0, 1.0, 0.0, 3.0, 0.0, 0.0, 0.0, 1.0,
+        );
+        let test_r = Matrix3::new(1.0, 0.0, 0.0, 0.0, 0.0, -1.0, 0.0, 1.0, 0.0);
+        let test_p = Vector3::new(0.0, 0.0, 3.0);
+        let (r, p) = trans_to_rp(test_t);
+        assert_eq!(r, test_r);
+        assert_eq!(p, test_p);
     }
 }

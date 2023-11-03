@@ -94,11 +94,11 @@ where
     {
         assert_eq!(self.0 .0.shape().0.value(), self.0 .1.shape().0.value());
 
-        let mut output_0 = output.generic_slice_mut((0, 0), self.0 .0.shape());
+        let mut output_0 = output.generic_view_mut((0, 0), self.0 .0.shape());
         self.0 .0.populate(&mut output_0);
 
         let offset = self.0 .0.shape().1.value();
-        let mut output_1 = output.generic_slice_mut((0, offset), self.0 .1.shape());
+        let mut output_1 = output.generic_view_mut((0, offset), self.0 .1.shape());
         self.0 .1.populate(&mut output_1);
     }
 }
@@ -128,11 +128,11 @@ where
     {
         assert_eq!(self.0 .0.shape().1.value(), self.0 .1.shape().1.value());
 
-        let mut output_0 = output.generic_slice_mut((0, 0), self.0 .0.shape());
+        let mut output_0 = output.generic_view_mut((0, 0), self.0 .0.shape());
         self.0 .0.populate(&mut output_0);
 
         let offset = self.0 .0.shape().0.value();
-        let mut output_1 = output.generic_slice_mut((offset, 0), self.0 .1.shape());
+        let mut output_1 = output.generic_view_mut((offset, 0), self.0 .1.shape());
         self.0 .1.populate(&mut output_1);
     }
 }
