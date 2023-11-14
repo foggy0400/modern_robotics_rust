@@ -8,4 +8,5 @@ edition = "2021"
 [dependencies]
 expm = "*"
 nalgebra = "*"
+num = "0.4.1"
 num-traits = "*"
