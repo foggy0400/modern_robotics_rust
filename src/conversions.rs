@@ -1,51 +1,10 @@
 extern crate nalgebra as na;
 use crate::bcat;
 use crate::concat::{allocate_block_output, Block, HCat, VCat};
-use crate::groups::So3Matrix;
+use crate::groups::ToSo3;
+use crate::interfaces::Numeric;
 use na::{Matrix3, Matrix4, Matrix6, Scalar, Vector3};
-use num::traits::{Num, Zero};
-use std::ops::Neg;
-
-trait Numeric<T>: Num + Copy + Scalar + Neg<Output = T> {}
-impl<T> Numeric<T> for T where T: Num + Copy + Scalar + Neg<Output = T> {}
-
-pub trait ToSo3<T: Num + Scalar> {
-    fn to_so3(&self) -> So3Matrix<T>;
-}
-
-impl<T: Numeric<T>> ToSo3<T> for Vector3<T> {
-    fn to_so3(&self) -> So3Matrix<T> {
-        // Try Num::Zero.zero()
-        So3Matrix(Matrix3::new(
-            Zero::zero(),
-            -self[2],
-            self[1],
-            self[2],
-            Zero::zero(),
-            -self[0],
-            -self[1],
-            self[0],
-            Zero::zero(),
-        ))
-    }
-}
-
-pub fn vec_to_so3<T: Copy>(omega: &[T; 3]) -> Matrix3<f64>
-where
-    f64: std::convert::From<T>,
-{
-    return Matrix3::new(
-        0.0,
-        -f64::from(omega[2]),
-        f64::from(omega[1]),
-        f64::from(omega[2]),
-        0.0,
-        -f64::from(omega[0]),
-        -f64::from(omega[1]),
-        f64::from(omega[0]),
-        0.0,
-    );
-}
+use num::traits::Zero;
 
 pub fn vec_to_se3<T: Copy>(omega: &[T; 6]) -> Matrix4<f64>
 where
@@ -82,53 +41,17 @@ where
     )
 }
 
-pub fn ad<T: Copy>(v: &[T; 6]) -> Matrix6<f64>
-where
-    f64: std::convert::From<T>,
-{
-    // these unwraps should never panic - the length of the input is set to 6 so should always be
-    // valid
-    let omega = vec_to_so3(&v[0..3].try_into().unwrap());
-    let vmat = vec_to_so3(&v[3..6].try_into().unwrap());
+pub fn ad<T: Numeric<T>>(v: [T; 6]) -> Matrix6<T> {
+    let omega = Vector3::from_row_slice(&v[0..3]).to_so3();
+    let vmat = Vector3::from_row_slice(&v[3..6]).to_so3();
     let zeros = Matrix3::zeros();
-    return bcat![omega, zeros;
-                vmat, omega];
+    return bcat![omega.0, zeros;
+                vmat.0, omega.0];
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn so3() {
-        let test_mat = Matrix3::new(0.0, -3.3, 2.2, 3.3, 0.0, -1.1, -2.2, 1.1, 0.0);
-        let vec: [f64; 3] = [1.1, 2.2, 3.3];
-        let res = vec_to_so3(&vec);
-        assert_eq!(res, test_mat);
-    }
-
-    #[test]
-    fn to_so3_vector3() {
-        let t_vec = Vector3::new(1, 2, 3);
-        let t_mat = t_vec.to_so3();
-        let target = Matrix3::new(0, -3, 2, 3, 0, -1, -2, 1, 0);
-        assert_eq!(t_mat.0, target);
-    }
-
-    #[test]
-    fn so3_conversion() {
-        let test_mat = Matrix3::new(0.0, -3.0, 2.0, 3.0, 0.0, -1.0, -2.0, 1.0, 0.0);
-        let vec: [i32; 3] = [1, 2, 3];
-        let res = vec_to_so3(&vec);
-        assert_eq!(res, test_mat);
-    }
-
-    #[test]
-    fn so3_parameter() {
-        let test_mat = Matrix3::new(0.0, -3.0, 2.0, 3.0, 0.0, -1.0, -2.0, 1.0, 0.0);
-        let res = vec_to_so3(&[1, 2, 3]);
-        assert_eq!(res, test_mat);
-    }
 
     #[test]
     fn se3() {
@@ -162,8 +85,8 @@ mod tests {
     // More tests are needed for this function, this is just the example from MR
     #[test]
     fn ad_conversion() {
-        let test_vec = [1, 2, 3, 4, 5, 6];
-        let res = ad(&test_vec);
+        let test_vec = [1.0, 2.0, 3.0, 4.0, 5.0, 6.0];
+        let res = ad(test_vec);
         let test_mat = Matrix6::new(
             0.0, -3.0, 2.0, 0.0, 0.0, 0.0, 3.0, 0.0, -1.0, 0.0, 0.0, 0.0, -2.0, 1.0, 0.0, 0.0, 0.0,
             0.0, 0.0, -6.0, 5.0, 0.0, -3.0, 2.0, 6.0, 0.0, -4.0, 3.0, 0.0, -1.0, -5.0, 4.0, 0.0,
