@@ -17,6 +17,12 @@ pub trait ToSo3<T: Numeric<T>> {
     fn to_so3(&self) -> So3Matrix<T>;
 }
 
+impl<T: Numeric<T>> ToSo3<T> for Matrix3<T> {
+    fn to_so3(&self) -> So3Matrix<T> {
+        So3Matrix(*self)
+    }
+}
+
 impl<T: Numeric<T>> ToSo3<T> for Vector3<T> {
     fn to_so3(&self) -> So3Matrix<T> {
         So3Matrix(Matrix3::new(
@@ -32,16 +38,6 @@ impl<T: Numeric<T>> ToSo3<T> for Vector3<T> {
         ))
     }
 }
-
-// impl<T: Numeric<T>> ToSo3<T> for Vec<T> {
-// fn to_so3(&self) -> So3Matrix<T> {
-// So3Matrix(Matrix3::new(
-// if (self.len() < 3) {
-// panic!
-// }
-// ))
-// }
-// }
 
 impl<T: Numeric<T>> ToSo3<T> for [T; 3] {
     fn to_so3(&self) -> So3Matrix<T> {
@@ -77,5 +73,12 @@ mod tests {
         let t_mat = t_vec.to_so3();
         let target = Matrix3::new(0, -3, 2, 3, 0, -1, -2, 1, 0);
         assert_eq!(t_mat.0, target);
+    }
+
+    #[test]
+    fn to_so3_matrix3() {
+        let target = Matrix3::new(0, -3, 2, 3, 0, -1, -2, 1, 0);
+        let res = target.to_so3();
+        assert_eq!(res.0, target);
     }
 }

@@ -4,7 +4,6 @@ use crate::concat::{allocate_block_output, Block, HCat, VCat};
 use crate::groups::ToSo3;
 use crate::interfaces::Numeric;
 use na::{Matrix3, Matrix4, Matrix6, Scalar, Vector3};
-use num::traits::Zero;
 
 pub fn vec_to_se3<T: Copy>(omega: &[T; 6]) -> Matrix4<f64>
 where
