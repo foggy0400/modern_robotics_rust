@@ -1,9 +1,5 @@
 extern crate nalgebra as na;
-use crate::bcat;
-use crate::concat::{allocate_block_output, Block, HCat, VCat};
-use crate::groups::ToSo3;
-use crate::interfaces::Numeric;
-use na::{Matrix3, Matrix4, Matrix6, Scalar, Vector3};
+use na::{Matrix3, Matrix4, Scalar, Vector3};
 
 pub fn trans_to_rp<T: Copy>(v: Matrix4<T>) -> (Matrix3<T>, Vector3<T>)
 where
@@ -16,30 +12,11 @@ where
     )
 }
 
-pub fn ad<T: Numeric<T>>(v: [T; 6]) -> Matrix6<T> {
-    let omega = Vector3::from_row_slice(&v[0..3]).to_so3();
-    let vmat = Vector3::from_row_slice(&v[3..6]).to_so3();
-    let zeros = Matrix3::zeros();
-    return bcat![omega.0, zeros;
-                vmat.0, omega.0];
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
 
     // More tests are needed for this function, this is just the example from MR
-    #[test]
-    fn ad_conversion() {
-        let test_vec = [1.0, 2.0, 3.0, 4.0, 5.0, 6.0];
-        let res = ad(test_vec);
-        let test_mat = Matrix6::new(
-            0.0, -3.0, 2.0, 0.0, 0.0, 0.0, 3.0, 0.0, -1.0, 0.0, 0.0, 0.0, -2.0, 1.0, 0.0, 0.0, 0.0,
-            0.0, 0.0, -6.0, 5.0, 0.0, -3.0, 2.0, 6.0, 0.0, -4.0, 3.0, 0.0, -1.0, -5.0, 4.0, 0.0,
-            -2.0, 1.0, 0.0,
-        );
-        assert_eq!(res, test_mat);
-    }
 
     // More tests are needed for this function, this is just the example from MR
     #[test]

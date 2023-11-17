@@ -1,9 +1,7 @@
 extern crate nalgebra as na;
 use crate::interfaces::Numeric;
-use na::{Matrix3, Vector3};
+use na::{Const, Matrix, Matrix3, Vector3, ViewStorage};
 use num::Zero;
-
-//TODO
 
 pub struct So3Matrix<T: Numeric<T>>(pub Matrix3<T>);
 
@@ -28,6 +26,24 @@ impl<T: Numeric<T>> ToSo3<T> for Vector3<T> {
             -self[0],
             -self[1],
             self[0],
+            Zero::zero(),
+        ))
+    }
+}
+
+impl<T: Numeric<T>> ToSo3<T>
+    for Matrix<T, Const<3>, Const<1>, ViewStorage<'_, T, Const<3>, Const<1>, Const<1>, Const<6>>>
+{
+    fn to_so3(&self) -> So3Matrix<T> {
+        So3Matrix(Matrix3::new(
+            Zero::zero(),
+            -self[(2, 0)],
+            self[(1, 0)],
+            self[(2, 0)],
+            Zero::zero(),
+            -self[(0, 0)],
+            -self[(1, 0)],
+            self[(0, 0)],
             Zero::zero(),
         ))
     }
