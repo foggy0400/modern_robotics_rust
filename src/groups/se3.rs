@@ -1,12 +1,17 @@
 extern crate nalgebra as na;
+use crate::groups::So3Matrix;
 use crate::interfaces::Numeric;
-use na::{Matrix4, Vector6};
+use na::{Matrix4, Vector3, Vector6};
 use num::Zero;
 
 pub struct Se3Matrix<T: Numeric<T>>(pub Matrix4<T>);
 
 pub trait ToSe3<T: Numeric<T>> {
     fn to_se3(&self) -> Se3Matrix<T>;
+}
+
+pub trait ToRP<T: Numeric<T>> {
+    fn to_rp(&self) -> (So3Matrix<T>, Vector3<T>);
 }
 
 impl<T: Numeric<T>> ToSe3<T> for Matrix4<T> {
@@ -61,9 +66,20 @@ impl<T: Numeric<T>> ToSe3<T> for [T; 6] {
     }
 }
 
+impl<T: Numeric<T>> ToRP<T> for Se3Matrix<T> {
+    fn to_rp(&self) -> (So3Matrix<T>, Vector3<T>) {
+        (
+            So3Matrix(self.0.fixed_view::<3, 3>(0, 0).clone_owned()),
+            self.0.fixed_view::<3, 1>(0, 3).clone_owned(),
+        )
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::groups::ToSo3;
+    use na::Matrix3;
 
     #[test]
     fn se3_array() {
@@ -90,5 +106,18 @@ mod tests {
         );
         let res = test_mat.to_se3();
         assert_eq!(res.0, test_mat);
+    }
+
+    #[test]
+    fn trans_to_rp_conversion() {
+        let test_t = Matrix4::new(
+            1.0, 0.0, 0.0, 0.0, 0.0, 0.0, -1.0, 0.0, 0.0, 1.0, 0.0, 3.0, 0.0, 0.0, 0.0, 1.0,
+        )
+        .to_se3();
+        let test_r = Matrix3::new(1.0, 0.0, 0.0, 0.0, 0.0, -1.0, 0.0, 1.0, 0.0).to_so3();
+        let test_p = Vector3::new(0.0, 0.0, 3.0);
+        let (r, p) = test_t.to_rp();
+        assert_eq!(r.0, test_r.0);
+        assert_eq!(p, test_p);
     }
 }
