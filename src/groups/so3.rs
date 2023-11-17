@@ -4,12 +4,6 @@ use na::{Matrix3, Vector3};
 use num::Zero;
 
 //TODO
-// SO3 matrix
-// SE3 matrix
-// Generic 3-vector
-// v (angular velocity vector) - if needing special traits
-// V (6-vector spatial velocity vec)
-// ad matrix
 
 pub struct So3Matrix<T: Numeric<T>>(pub Matrix3<T>);
 
