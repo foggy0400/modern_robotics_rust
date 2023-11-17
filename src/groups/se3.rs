@@ -1,5 +1,5 @@
 extern crate nalgebra as na;
-use crate::groups::So3Matrix;
+use crate::groups::{So3Matrix, ToSo3};
 use crate::interfaces::Numeric;
 use na::{Matrix4, Vector3, Vector6};
 use num::Zero;
@@ -75,6 +75,12 @@ impl<T: Numeric<T>> ToRP<T> for Se3Matrix<T> {
     }
 }
 
+impl<T: Numeric<T>> ToSo3<T> for Se3Matrix<T> {
+    fn to_so3(&self) -> So3Matrix<T> {
+        self.to_rp().0
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -119,5 +125,16 @@ mod tests {
         let (r, p) = test_t.to_rp();
         assert_eq!(r.0, test_r.0);
         assert_eq!(p, test_p);
+    }
+
+    #[test]
+    fn se3_to_so3_conversion() {
+        let test_t = Matrix4::new(
+            1.0, 0.0, 0.0, 0.0, 0.0, 0.0, -1.0, 0.0, 0.0, 1.0, 0.0, 3.0, 0.0, 0.0, 0.0, 1.0,
+        )
+        .to_se3();
+        let test_r = Matrix3::new(1.0, 0.0, 0.0, 0.0, 0.0, -1.0, 0.0, 1.0, 0.0).to_so3();
+        let r = test_t.to_so3();
+        assert_eq!(r.0, test_r.0);
     }
 }
