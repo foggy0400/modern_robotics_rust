@@ -1,7 +1,7 @@
 extern crate nalgebra as na;
 use crate::bcat;
 use crate::concat::{allocate_block_output, Block, HCat, VCat};
-use crate::groups::ToSo3;
+use crate::groups::{Se3Matrix, ToSe3, ToSo3};
 use crate::interfaces::Numeric;
 use na::{Matrix3, Matrix6, Vector6};
 
@@ -37,24 +37,39 @@ impl<T: Numeric<T>> Ad<T> for Twist<T> {
     }
 }
 
+impl<T: Numeric<T>> ToSe3<T> for Twist<T> {
+    fn to_se3(&self) -> Se3Matrix<T> {
+        self.0.to_se3()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+    use na::Matrix4;
 
     #[test]
-    fn to_twist_array() {
+    fn array_to_twist() {
         let arr: [f64; 6] = [1.1, 2.2, 3.3, 4.4, 5.5, 6.6];
         let res = arr.to_twist();
         assert_eq!(res.0, Vector6::new(1.1, 2.2, 3.3, 4.4, 5.5, 6.6));
     }
     #[test]
-    fn to_twist_vector() {
+    fn vector_to_twist() {
         let vec = Vector6::new(1, 2, 3, 4, 5, 6);
         let res = vec.to_twist();
         assert_eq!(res.0, Vector6::new(1, 2, 3, 4, 5, 6));
     }
+
     #[test]
-    fn ad_conversion() {
+    fn se3_from_twist() {
+        let test_mat = Matrix4::new(0, -3, 2, 4, 3, 0, -1, 5, -2, 1, 0, 6, 0, 0, 0, 1);
+        let vec = Vector6::new(1, 2, 3, 4, 5, 6).to_twist();
+        let res = vec.to_se3();
+        assert_eq!(res.0, test_mat);
+    }
+    #[test]
+    fn ad() {
         let test_vec = [1.0, 2.0, 3.0, 4.0, 5.0, 6.0];
         let res = test_vec.to_twist().ad();
         let test_mat = Matrix6::new(
